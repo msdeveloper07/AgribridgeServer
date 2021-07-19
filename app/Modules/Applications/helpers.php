@@ -1,0 +1,5 @@
+<?php
+
+/**
+ *	Applications Helpers
+ */
