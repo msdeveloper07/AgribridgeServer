@@ -1,5 +1,0 @@
-<?php
-
-/**
- *	RolePrivileges Helpers
- */

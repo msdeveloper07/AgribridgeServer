@@ -1,5 +1,0 @@
-<?php
-
-/**
- *	Organizations Helpers
- */

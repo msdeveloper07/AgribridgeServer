@@ -1,5 +1,0 @@
-<?php
-
-/**
- *	Roles Helpers
- */

@@ -1,5 +1,0 @@
-<?php
-
-/**
- *	Locations Helpers
- */
