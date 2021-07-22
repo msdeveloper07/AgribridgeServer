@@ -1,0 +1,11 @@
+<?php
+
+namespace App\Modules\Screens\Http\Controllers\Api\v1;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+
+class ScreensController extends Controller
+{
+    //
+}
