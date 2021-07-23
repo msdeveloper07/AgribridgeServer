@@ -17,14 +17,24 @@ class ApiAuthController extends Controller
         return view("Security::welcome");
     }
 
+   
+
+
     public function register(Request $request)
     {
         //Validate data
-        $data = $request->only('mobile_number', 'email', 'password');
+        $data = $request->only('user_name', 'user_type','register_company', 'designation', 'mobile_number','email', 'password', 'privacyPolicy');
+        
         $validator = Validator::make($data, [
-            'mobile_number' => 'required|string',
+            'user_name' => 'required|string',
+            'user_type' => 'required|string',
+            'register_company' => 'required|string',
+            'designation' => 'required|string',
+            'mobile_number' => 'required|digits:10',            
             'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:5|max:15'
+            'password' => 'required|string|min:5|max:15',            
+            'privacyPolicy' => 'required|string'
+
         ]);
 
         //Send failed response if request is not valid
@@ -37,7 +47,11 @@ class ApiAuthController extends Controller
 
         //Request is valid, create new user
         $user = User::create([
+            'user_name' => $request->user_name,
             'mobile_number' => $request->mobile_number,
+            'register_company' => $request->register_company,
+            'user_type' => $request->user_type,
+            'designation' => $request->designation,
             'email' => $request->email,
             'password' => bcrypt($request->password)
         ]);
@@ -119,4 +133,6 @@ class ApiAuthController extends Controller
             'data' => $user
         ]);
     }
+
+    
 }
