@@ -88,7 +88,7 @@ class ApiAuthController extends Controller
             'message' => 'Login successfully',
             'email_verification' => auth()->user()->hasVerifiedEmail(),
             'token' => $token,
-            'user_data' => auth()->user(),
+            'data' => auth()->user(),
         ]);
     }
 
@@ -160,7 +160,7 @@ class ApiAuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => "Data Save.",
-            'data' => $update
+            'data' => $user
         ], Response::HTTP_OK);
     }
 }
