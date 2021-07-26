@@ -151,7 +151,7 @@ class ApiAuthController extends Controller
             $data['user_image_url'] = "storage/images/user/" . $log_file_;
 
             if($user->user_image_url){
-                deleteFileFromStorage($path, $user->user_image_url);
+                deleteFileFromStorage($path, explode("storage/images/user/", $user->user_image_url)[1]);
             }
         }
         unset($data['log_file']);
@@ -160,7 +160,7 @@ class ApiAuthController extends Controller
         return response()->json([
             'success' => true,
             'message' => "Data Save.",
-            'data' => $user
+            'data' => tokentAuthentication()
         ], Response::HTTP_OK);
     }
 }
