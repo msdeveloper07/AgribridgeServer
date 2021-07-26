@@ -18,3 +18,10 @@ function deleteFileFromStorage($path, $fileName)
     // $fileName = dgsdfsdf_sdfsdff.jpg;
     Storage::delete($path . $fileName);
 }
+
+function tokentAuthentication(){
+    if (!$user = JWTAuth::parseToken()->authenticate()) {
+        return 0;
+    }
+    return $user;
+}

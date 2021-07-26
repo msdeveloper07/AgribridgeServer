@@ -29,7 +29,7 @@ class OrganizationsController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'error' => $validator->messages()->first()
+                'message' => $validator->messages()->first()
             ], Response::HTTP_OK);
         }
         $data['app_id'] = 1;
@@ -49,7 +49,7 @@ class OrganizationsController extends Controller
         return response()->json([
             'success' => true,
             'message' => "Data Save.",
-            'data' => $data
+            'data' => $create
         ], Response::HTTP_OK);
     }
 

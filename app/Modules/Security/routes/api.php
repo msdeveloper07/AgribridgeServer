@@ -16,6 +16,7 @@ Route::group(
         Route::group(['middleware' => ['jwt.verify']], function () {
             Route::get('logout', [ApiAuthController::class, 'logout']);
             Route::get('get_user', [ApiAuthController::class, 'get_user']);
+            Route::post('edit_user', [ApiAuthController::class, 'edit_user']);
         });
 
         Route::post('organizition_insert', [OrganizationsController::class, 'insert']);
