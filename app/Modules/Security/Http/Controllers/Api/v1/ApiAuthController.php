@@ -4,6 +4,9 @@ namespace App\Modules\Security\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Security\Models\User;
+use App\Modules\Security\Models\Organizations;
+use App\Modules\Security\Models\UserRoles;
+use App\Modules\Security\Models\Roles;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
@@ -44,17 +47,42 @@ class ApiAuthController extends Controller
                 'error' => $validator->messages()->first()
             ], Response::HTTP_OK);
         }
+        
+        
+         $organization = Organizations::create([
+            'org_name' => $request->register_company,
+            'app_id' => '1',
+          ]);
+
+
+         $orgId = $organization->id; 
+
+         $role = Roles::create([
+            'org_id' => $orgId,
+            'role_name' => $request->user_type,
+          ]);
+
+         $roleId = $role->id; 
+
 
         //Request is valid, create new user
         $user = User::create([
             'user_name' => $request->user_name,
+            'org_id' => $orgId,
             'mobile_number' => $request->mobile_number,
-            'register_company' => $request->register_company,
-            'user_type' => $request->user_type,
             'designation' => $request->designation,
             'email' => $request->email,
             'password' => bcrypt($request->password)
         ]);
+
+         $userId = $user->id;
+         $organization = UserRoles::create([
+            'usr_id' => $userId,
+            'rol_id' => $roleId,
+          ]);
+
+
+       $token = JWTAuth::fromUser($user);     
 
         //User created, return success response
         return response()->json([
@@ -62,12 +90,14 @@ class ApiAuthController extends Controller
             'message' => 'User created successfully',
             'data' => $data
         ], Response::HTTP_OK);
+
+
     }
 
     public function authenticate(Request $request)
     {
         $credentials = $request->only('email', 'password');
-
+    
         //valid credential
         $validator = Validator::make($credentials, [
             'email' => 'required|email',
@@ -134,5 +164,69 @@ class ApiAuthController extends Controller
         ]);
     }
 
+    public function forgot_password(Request $request)
+    {
+
+        $input = $request->all();
+        echo"<pre>"; print_r($input); die;
+        $rules = array(
+            'email' => "required|email",
+        );
+        $validator = Validator::make($input, $rules);
+        if ($validator->fails()) {
+            $arr = array("status" => 400, "message" => $validator->errors()->first(), "data" => array());
+        } else {
+            try {
+                $response = Password::sendResetLink($request->only('email'), function (Message $message) {
+                    $message->subject($this->getEmailSubject());
+                });
+                switch ($response) {
+                    case Password::RESET_LINK_SENT:
+                        return \Response::json(array("status" => 200, "message" => trans($response), "data" => array()));
+                    case Password::INVALID_USER:
+                        return \Response::json(array("status" => 400, "message" => trans($response), "data" => array()));
+                }
+            } catch (\Swift_TransportException $ex) {
+                $arr = array("status" => 400, "message" => $ex->getMessage(), "data" => []);
+            } catch (Exception $ex) {
+                $arr = array("status" => 400, "message" => $ex->getMessage(), "data" => []);
+            }
+        }
+        return \Response::json($arr);
+    }
+
+   public function change_password(Request $request)
+    {
+        $input = $request->all();
+        $userid = Auth::guard('api')->user()->id;
+        $rules = array(
+            'old_password' => 'required',
+            'new_password' => 'required|min:6',
+            'confirm_password' => 'required|same:new_password',
+        );
+        $validator = Validator::make($input, $rules);
+        if ($validator->fails()) {
+            $arr = array("status" => 400, "message" => $validator->errors()->first(), "data" => array());
+        } else {
+            try {
+                if ((Hash::check(request('old_password'), Auth::user()->password)) == false) {
+                    $arr = array("status" => 400, "message" => "Check your old password.", "data" => array());
+                } else if ((Hash::check(request('new_password'), Auth::user()->password)) == true) {
+                    $arr = array("status" => 400, "message" => "Please enter a password which is not similar then current password.", "data" => array());
+                } else {
+                    User::where('id', $userid)->update(['password' => Hash::make($input['new_password'])]);
+                    $arr = array("status" => 200, "message" => "Password updated successfully.", "data" => array());
+                }
+            } catch (\Exception $ex) {
+                if (isset($ex->errorInfo[2])) {
+                    $msg = $ex->errorInfo[2];
+                } else {
+                    $msg = $ex->getMessage();
+                }
+                $arr = array("status" => 400, "message" => $msg, "data" => array());
+            }
+        }
+        return \Response::json($arr);
+    }
     
 }
