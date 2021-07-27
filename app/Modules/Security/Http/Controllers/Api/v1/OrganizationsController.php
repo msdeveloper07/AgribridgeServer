@@ -17,11 +17,9 @@ class OrganizationsController extends Controller
         $data = $request->except('org_taluka', 'org_village', 'org_pincode');
         $validator = Validator::make($request->all(), [
             'org_name' => 'required|string',
-            'parent_org_id' => 'required',
             'org_type' => 'required|string'
         ], [
             'org_name.required' => "The Organization Name field is required.",
-            'parent_org_id.required' => "The Organization ID field is required.",
             'org_type.required' => "The Organization Type field is required.",
         ]);
 
