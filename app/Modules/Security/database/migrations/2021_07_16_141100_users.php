@@ -36,6 +36,10 @@ class Users extends Migration
             $table->string('taluka', 45)->nullable();
             $table->string('village', 45)->nullable();
             $table->string('zipcode', 45)->nullable();
+            $table->string('register_company', 100)->nullable();
+            $table->string('user_type', 45)->nullable();
+            $table->string('designation', 100)->nullable();
+
             $table->integer('create_userid')->nullable();
             $table->integer('update_userid')->nullable();
 
