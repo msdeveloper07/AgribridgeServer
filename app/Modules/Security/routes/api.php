@@ -1,6 +1,7 @@
 <?php
 
 use App\Modules\Security\Http\Controllers\Api\v1\ApiAuthController;
+use App\Modules\Security\Http\Controllers\Api\v1\OrganizationsController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\PasswordResetRequestController;
@@ -19,7 +20,11 @@ Route::group(
         Route::group(['middleware' => ['jwt.verify']], function () {
             Route::get('logout', [ApiAuthController::class, 'logout']);
             Route::get('get_user', [ApiAuthController::class, 'get_user']);
+            Route::post('userprofile', [ApiAuthController::class, 'edit_user']);
         });
+
+        Route::post('organizition_insert', [OrganizationsController::class, 'insert']);
+        Route::get('get_organizition_list', [OrganizationsController::class, 'get_organizition_list']);
     }
 
 

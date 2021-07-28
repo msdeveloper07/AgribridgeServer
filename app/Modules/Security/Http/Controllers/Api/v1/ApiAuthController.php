@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Str;
 
 class ApiAuthController extends Controller
 {
@@ -44,7 +45,7 @@ class ApiAuthController extends Controller
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'error' => $validator->messages()->first()
+                'message' => $validator->messages()->first()
             ], Response::HTTP_OK);
         }
         
@@ -106,7 +107,7 @@ class ApiAuthController extends Controller
 
         //Send failed response if request is not valid
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->messages()], 200);
+            return response()->json(['message' => $validator->messages()->first()], 200);
         }
 
         //Request is validated
@@ -128,9 +129,10 @@ class ApiAuthController extends Controller
         //Token created, return with success response and jwt token
         return response()->json([
             'success' => true,
+            'message' => 'Login successfully',
             'email_verification' => auth()->user()->hasVerifiedEmail(),
             'token' => $token,
-            'user_data' => auth()->user(),
+            'data' => auth()->user(),
         ]);
     }
 
@@ -155,11 +157,10 @@ class ApiAuthController extends Controller
 
     public function get_user()
     {
-        if (!$user = JWTAuth::parseToken()->authenticate()) {
-            return 0;
-        }
+        $user = tokentAuthentication();
         return response()->json([
             'success' => true,
+            'message' => "Success",
             'data' => $user
         ]);
     }
@@ -229,4 +230,46 @@ class ApiAuthController extends Controller
         return \Response::json($arr);
     }
     
+    public function edit_user(Request $request)
+    {
+        $user = tokentAuthentication();
+        $data = $request->except('mandal');
+        $validator = Validator::make($request->all(), [
+            'email' => 'required',
+            'user_name' => 'required',
+            'mobile_number' => 'required'
+        ], [
+            'user_name.required' => "The User Name field is required.",
+            'mobile_number.required' => "The Mobile Number field is required.",
+        ]);
+
+        //Send failed response if request is not valid
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => $validator->messages()->first()
+            ], Response::HTTP_OK);
+        }
+        $path = 'public/images/user/';
+
+        if ($request->log_file) {
+            // file upload
+            $fileName = (string) Str::upper(Str::random(rand(1, 10))) . rand(1, 9999);
+            $newFileName = base64File($fileName, $request->log_file, $path);
+            $log_file_ = $newFileName;
+            $data['user_image_url'] = "storage/images/user/" . $log_file_;
+
+            if($user->user_image_url){
+                deleteFileFromStorage($path, explode("storage/images/user/", $user->user_image_url)[1]);
+            }
+        }
+        unset($data['log_file']);
+
+        $update = User::where('usr_id', $user->usr_id)->update($data);
+        return response()->json([
+            'success' => true,
+            'message' => "Data Save.",
+            'data' => tokentAuthentication()
+        ], Response::HTTP_OK);
+    }
 }
