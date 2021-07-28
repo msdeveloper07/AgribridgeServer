@@ -15,7 +15,7 @@ Route::group(
     function () {
         Route::post('login', [ApiAuthController::class, 'authenticate']);
         Route::post('register', [ApiAuthController::class, 'register']);
-        Route::post('/forget-password', 'ForgotPasswordController@postEmail');
+        Route::post('/forget-password', 'ApiAuthController@forgot_password');
 
         Route::group(['middleware' => ['jwt.verify']], function () {
             Route::get('logout', [ApiAuthController::class, 'logout']);

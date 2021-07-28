@@ -76,7 +76,8 @@ class ApiAuthController extends Controller
             'password' => bcrypt($request->password)
         ]);
 
-         $userId = $user->id;
+         $userId = $user->usr_id;
+         
          $organization = UserRoles::create([
             'usr_id' => $userId,
             'rol_id' => $roleId,
@@ -97,12 +98,13 @@ class ApiAuthController extends Controller
 
     public function authenticate(Request $request)
     {
+
         $credentials = $request->only('email', 'password');
     
         //valid credential
         $validator = Validator::make($credentials, [
             'email' => 'required|email',
-            'password' => 'required|string|min:5|max:15'
+            'password' => 'required|string|min:8|max:15'
         ]);
 
         //Send failed response if request is not valid
@@ -272,4 +274,6 @@ class ApiAuthController extends Controller
             'data' => tokentAuthentication()
         ], Response::HTTP_OK);
     }
+
+    
 }
