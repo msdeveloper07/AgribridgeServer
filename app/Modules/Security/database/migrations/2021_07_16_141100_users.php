@@ -37,7 +37,7 @@ class Users extends Migration
             $table->string('village', 45)->nullable();
             $table->string('zipcode', 45)->nullable();           
             $table->string('designation', 100)->nullable();
-
+            $table->string('token', 100)->nullable();
             $table->integer('create_userid')->nullable();
             $table->integer('update_userid')->nullable();
 
@@ -45,9 +45,11 @@ class Users extends Migration
             $table->timestamp('update_time')->useCurrent();
 
             $table->timestamp('email_verified_at')->nullable();
+            
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();
+            
         });
     }
 

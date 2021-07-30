@@ -15,7 +15,7 @@ Route::group(
     function () {
         Route::post('login', [ApiAuthController::class, 'authenticate']);
         Route::post('register', [ApiAuthController::class, 'register']);
-        Route::post('/forget-password', 'ApiAuthController@forgot_password');
+        Route::post('/forget-password', 'ForgotPasswordController@postEmail');
 
         Route::group(['middleware' => ['jwt.verify']], function () {
             Route::get('logout', [ApiAuthController::class, 'logout']);
@@ -23,6 +23,7 @@ Route::group(
             Route::post('userprofile', [ApiAuthController::class, 'edit_user']);
         });
 
+        Route::get('account/verify/{token}', [ApiAuthController::class, 'verifyAccount'])->name('user.verify');
         Route::post('organizition_insert', [OrganizationsController::class, 'insert']);
         Route::get('get_organizition_list', [OrganizationsController::class, 'get_organizition_list']);
     }
