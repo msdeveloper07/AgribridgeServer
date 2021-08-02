@@ -13,6 +13,13 @@ use Symfony\Component\HttpFoundation\Response;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Mail; 
+use Session;
+use Illuminate\Support\Facades\Redirect;
+
+use App\Mail\VerifyMail;
+use Illuminate\Support\Facades\View;
 
 class ApiAuthController extends Controller
 {
@@ -65,7 +72,8 @@ class ApiAuthController extends Controller
 
          $roleId = $role->id; 
 
-
+         $token = Str::random(64);
+          
         //Request is valid, create new user
         $user = User::create([
             'user_name' => $request->user_name,
@@ -73,17 +81,28 @@ class ApiAuthController extends Controller
             'mobile_number' => $request->mobile_number,
             'designation' => $request->designation,
             'email' => $request->email,
-            'password' => bcrypt($request->password)
+            'password' => bcrypt($request->password),
+            'token' => $token
         ]);
 
-         $userId = $user->id;
+         $userId = $user->usr_id;
+
+         $userData = array(
+            'user_id' =>$userId,
+            'token' =>$token
+         );
          $organization = UserRoles::create([
             'usr_id' => $userId,
             'rol_id' => $roleId,
           ]);
+      // echo"<pre>"; print_r($userData); die;
 
+        //Mail::to($request->email)->send(new VerifyMail($userData));
+         Mail::send('email.emailVerificationEmail', ['token' => $token], function($message) use($request){
+              $message->to($request->email);
+              $message->subject('Email Verification Mail');
+          });
 
-       $token = JWTAuth::fromUser($user);     
 
         //User created, return success response
         return response()->json([
@@ -94,6 +113,36 @@ class ApiAuthController extends Controller
 
 
     }
+
+    /**
+     * Write code on Method
+     *
+     * @return response()
+     */
+    public function verifyAccount($token)
+    {
+        $verifyUser = User::where('token', $token)->first();
+        
+        $message = 'Sorry your email cannot be identified.';
+        //echo"<pre>"; print_r($verifyUser); die;
+        if(!empty($verifyUser) ){
+            $user = $verifyUser->is_email_verified;
+            if($user == 0) {
+                $verifyUser->is_email_verified = 1;
+                DB::table('users')->where('token', $token)->update(['is_email_verified' => 1]);
+                //$verifyUser->user->save();
+                $status = "Your e-mail is verified. You can now login.";
+            } else {
+                $status = "Your e-mail is already verified. You can now login.";
+            }
+        }else{
+            return redirect('http://127.0.0.1:8000/login')->with('warning', "Sorry your email cannot be identified.");
+        }
+  
+      return redirect('http://127.0.0.1:8000/login')->with('status', $status);
+      //return redirect()->route('login')->with('message', $message);
+    }
+
 
     public function authenticate(Request $request)
     {
@@ -272,4 +321,7 @@ class ApiAuthController extends Controller
             'data' => tokentAuthentication()
         ], Response::HTTP_OK);
     }
+
+
+  
 }

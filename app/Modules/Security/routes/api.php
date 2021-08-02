@@ -23,6 +23,7 @@ Route::group(
             Route::post('userprofile', [ApiAuthController::class, 'edit_user']);
         });
 
+        Route::get('account/verify/{token}', [ApiAuthController::class, 'verifyAccount'])->name('user.verify');
         Route::post('organizition_insert', [OrganizationsController::class, 'insert']);
         Route::get('get_organizition_list', [OrganizationsController::class, 'get_organizition_list']);
     }
