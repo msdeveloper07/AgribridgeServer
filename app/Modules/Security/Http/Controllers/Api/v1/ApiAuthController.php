@@ -14,6 +14,7 @@ use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Hash;
 use Mail; 
 use Session;
 use Illuminate\Support\Facades\Redirect;
@@ -73,12 +74,12 @@ class ApiAuthController extends Controller
          $roleId = $role->id; 
 
          $token = Str::random(64);
-          
+          $mobile = $request->countryCode.' '.$request->mobile_number;
         //Request is valid, create new user
         $user = User::create([
             'user_name' => $request->user_name,
             'org_id' => $orgId,
-            'mobile_number' => $request->mobile_number,
+            'mobile_number' => $mobile,
             'designation' => $request->designation,
             'email' => $request->email,
             'password' => bcrypt($request->password),
@@ -217,66 +218,64 @@ class ApiAuthController extends Controller
     public function forgot_password(Request $request)
     {
 
-        $input = $request->all();
-        echo"<pre>"; print_r($input); die;
-        $rules = array(
-            'email' => "required|email",
-        );
-        $validator = Validator::make($input, $rules);
-        if ($validator->fails()) {
-            $arr = array("status" => 400, "message" => $validator->errors()->first(), "data" => array());
-        } else {
-            try {
-                $response = Password::sendResetLink($request->only('email'), function (Message $message) {
-                    $message->subject($this->getEmailSubject());
-                });
-                switch ($response) {
-                    case Password::RESET_LINK_SENT:
-                        return \Response::json(array("status" => 200, "message" => trans($response), "data" => array()));
-                    case Password::INVALID_USER:
-                        return \Response::json(array("status" => 400, "message" => trans($response), "data" => array()));
-                }
-            } catch (\Swift_TransportException $ex) {
-                $arr = array("status" => 400, "message" => $ex->getMessage(), "data" => []);
-            } catch (Exception $ex) {
-                $arr = array("status" => 400, "message" => $ex->getMessage(), "data" => []);
-            }
-        }
-        return \Response::json($arr);
+       //echo "<pre>"; print_r($request); die;
+        $input = $request->all();       
+        $request->validate([
+        'email' => 'required|email|exists:users',
+        ]);
+
+        $token = Str::random(64);
+
+          DB::table('password_resets')->insert(
+              ['email' => $request->email, 'token' => $token]
+          );
+
+          Mail::send('email.resetPassword', ['token' => $token], function($message) use($request){
+              $message->to($request->email);
+              $message->subject('Reset Password Notification');
+          });
+          
+          //User created, return success response
+        return response()->json([
+            'success' => true,
+            'message' => 'We have e-mailed your password reset link!',
+        ], Response::HTTP_OK);
+
+        
+
     }
 
    public function change_password(Request $request)
     {
-        $input = $request->all();
-        $userid = Auth::guard('api')->user()->id;
-        $rules = array(
-            'old_password' => 'required',
-            'new_password' => 'required|min:6',
-            'confirm_password' => 'required|same:new_password',
-        );
-        $validator = Validator::make($input, $rules);
-        if ($validator->fails()) {
-            $arr = array("status" => 400, "message" => $validator->errors()->first(), "data" => array());
-        } else {
-            try {
-                if ((Hash::check(request('old_password'), Auth::user()->password)) == false) {
-                    $arr = array("status" => 400, "message" => "Check your old password.", "data" => array());
-                } else if ((Hash::check(request('new_password'), Auth::user()->password)) == true) {
-                    $arr = array("status" => 400, "message" => "Please enter a password which is not similar then current password.", "data" => array());
-                } else {
-                    User::where('id', $userid)->update(['password' => Hash::make($input['new_password'])]);
-                    $arr = array("status" => 200, "message" => "Password updated successfully.", "data" => array());
-                }
-            } catch (\Exception $ex) {
-                if (isset($ex->errorInfo[2])) {
-                    $msg = $ex->errorInfo[2];
-                } else {
-                    $msg = $ex->getMessage();
-                }
-                $arr = array("status" => 400, "message" => $msg, "data" => array());
-            }
-        }
-        return \Response::json($arr);
+
+        $request->validate([
+              'email' => 'required|email|exists:users',
+              'password' => 'required|string|min:8|confirmed',
+              'password_confirmation' => 'required'
+          ]);
+  
+
+          $updatePassword = DB::table('password_resets')
+                              ->where([
+                                'email' => $request->email, 
+                                'token' => $request->token
+                              ])
+                              ->first();
+  
+          if(!$updatePassword){
+              return back()->withInput()->with('error', 'Invalid token!');
+          }
+  
+          $user = User::where('email', $request->email)
+                      ->update(['password' => Hash::make($request->password)]);
+ 
+          DB::table('password_resets')->where(['email'=> $request->email])->delete();
+  
+          return redirect('login')->with('message', 'Your password has been changed!');
+      
+        
+
+      
     }
     
     public function edit_user(Request $request)
