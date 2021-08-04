@@ -19,13 +19,10 @@ class Screens extends Migration
             $table->unsignedBigInteger('mod_id');
             $table->foreign('mod_id')->references('mod_id')->on('modules')->index('scr_mod_fk');
 
-            $table->string('scr_name', 45)->nullable();
-            $table->string('scr_description', 45)->nullable();
-            $table->integer('scr_order')->nullable();
-            $table->timestamp('create_time')->useCurrent();
-            $table->timestamp('update_time')->useCurrent();
-
-            $table->softDeletes();
+            $table->string('scr_code', 25)->nullable();
+            $table->string('scr_description', 75)->nullable();
+            $table->string('scr_type', 45)->nullable();            
+            $table->integer('order_id')->nullable();
             $table->timestamps();
         });
     }

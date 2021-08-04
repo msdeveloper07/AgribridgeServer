@@ -23,9 +23,6 @@ class UserRoles extends Migration
             $table->foreign('rol_id')->references('rol_id')->on('roles')->index('urs_rol_fk');
             $table->integer('create_userid')->nullable();
             $table->integer('update_userid')->nullable();
-            $table->timestamp('create_time')->useCurrent();
-            $table->timestamp('update_time')->useCurrent();
-            $table->softDeletes();
             $table->timestamps();
         });
     }

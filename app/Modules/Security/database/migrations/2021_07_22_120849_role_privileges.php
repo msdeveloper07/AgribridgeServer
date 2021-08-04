@@ -26,9 +26,6 @@ class RolePrivileges extends Migration
             $table->tinyInteger('edit_access')->nullable();
             $table->integer('create_userid')->nullable();
             $table->integer('update_userid')->nullable();
-            $table->timestamp('create_time')->useCurrent();
-            $table->timestamp('update_time')->useCurrent();
-            $table->softDeletes();
             $table->timestamps();
         });
     }
