@@ -80,9 +80,8 @@ class ApiAuthController extends Controller
             'user_name' => $request->user_name,
             'org_id' => $orgId,
             'mobile_number' => $mobile,
-            'designation' => $request->designation,
             'email' => $request->email,
-            'password' => bcrypt($request->password),
+            'user_password' => bcrypt($request->password),
             'token' => $token
         ]);
 
@@ -217,7 +216,6 @@ class ApiAuthController extends Controller
 
     public function forgot_password(Request $request)
     {
-
        //echo "<pre>"; print_r($request); die;
         $input = $request->all();       
         $request->validate([
@@ -247,33 +245,35 @@ class ApiAuthController extends Controller
 
    public function change_password(Request $request)
     {
-
-        $request->validate([
-              'email' => 'required|email|exists:users',
-              'password' => 'required|string|min:8|confirmed',
-              'password_confirmation' => 'required'
-          ]);
-  
+        
+          $data = $_POST;
 
           $updatePassword = DB::table('password_resets')
                               ->where([
-                                'email' => $request->email, 
-                                'token' => $request->token
+                                'email' => $_POST['email'], 
+                                'token' => $_POST['token']
                               ])
                               ->first();
+                              //echo"<pre>"; print_r($updatePassword); die;
   
           if(!$updatePassword){
-              return back()->withInput()->with('error', 'Invalid token!');
+            return response()->json([
+                'success' => false,
+                'message' => "Invalid token!",
+            ], Response::HTTP_OK);
+             
           }
   
-          $user = User::where('email', $request->email)
-                      ->update(['password' => Hash::make($request->password)]);
+          $user = User::where('email', $_POST['email'])
+                      ->update(['user_password' => Hash::make($_POST['password'])]);
  
-          DB::table('password_resets')->where(['email'=> $request->email])->delete();
+          DB::table('password_resets')->where(['email'=> $_POST['email']])->delete();
   
-          return redirect('login')->with('message', 'Your password has been changed!');
-      
-        
+         return response()->json([
+                'success' => true,
+                'message' => "Your password has been changed!",
+            ], Response::HTTP_OK);  
+          
 
       
     }

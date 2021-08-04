@@ -22,9 +22,6 @@ class Roles extends Migration
             $table->string('role_name', 45)->nullable();
             $table->integer('created_userid')->nullable();
             $table->integer('update_userid')->nullable();
-            $table->timestamp('create_time')->useCurrent();
-            $table->timestamp('update_time')->useCurrent();
-            $table->softDeletes();
             $table->timestamps();
         });
     }

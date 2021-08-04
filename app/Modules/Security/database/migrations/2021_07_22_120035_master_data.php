@@ -20,7 +20,6 @@ class MasterData extends Migration
             $table->string('name', 45)->nullable();
             $table->string('description', 250)->nullable();
             $table->integer('order_id')->nullable();
-            $table->softDeletes();
             $table->timestamps();
         });
     }

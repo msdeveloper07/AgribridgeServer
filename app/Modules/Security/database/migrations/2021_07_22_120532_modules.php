@@ -18,12 +18,10 @@ class Modules extends Migration
 
             $table->unsignedBigInteger('app_id');
             $table->foreign('app_id')->references('app_id')->on('applications')->index('mod_app_fk');
-
             $table->integer('parent_mod_id')->nullable();
-            $table->string('mod_name', 45)->nullable();
-            $table->timestamp('create_time')->useCurrent();
-            $table->timestamp('update_time')->useCurrent();
-            $table->softDeletes();
+            $table->string('mod_code', 25)->nullable();
+            $table->string('mod_description', 75)->nullable();
+            $table->integer('order_id')->nullable();
             $table->timestamps();
         });
     }

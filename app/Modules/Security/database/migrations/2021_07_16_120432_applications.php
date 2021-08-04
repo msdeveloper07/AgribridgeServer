@@ -15,11 +15,8 @@ class Applications extends Migration
     {
         Schema::create('applications', function (Blueprint $table) {
             $table->id('app_id');
-            $table->string('app_name', 45)->nullable();
+            $table->string('app_code', 25)->nullable();
             $table->string('app_description', 150)->nullable();
-            $table->timestamp('create_time')->useCurrent();
-            $table->timestamp('update_time')->useCurrent();
-            $table->softDeletes();
             $table->timestamps();
         });
     }
